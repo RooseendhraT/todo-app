@@ -2,7 +2,7 @@
   "name": "todo-app",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://github.com/RooseendhraT/todo-app.git",
+  "homepage": "https://rooseendhrat.github.io/todo-app",
   "dependencies": {
     "cra-template": "1.2.0",
     "react": "^18.2.0",
