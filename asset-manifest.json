@@ -1,10 +1,10 @@
 {
   "files": {
-    "main.css": "/RooseendhraT/todo-app.git/static/css/main.a41ad741.css",
-    "main.js": "/RooseendhraT/todo-app.git/static/js/main.af4eba72.js",
-    "index.html": "/RooseendhraT/todo-app.git/index.html",
-    "main.a41ad741.css.map": "/RooseendhraT/todo-app.git/static/css/main.a41ad741.css.map",
-    "main.af4eba72.js.map": "/RooseendhraT/todo-app.git/static/js/main.af4eba72.js.map"
+    "main.css": "/todo-app/static/css/main.a41ad741.css",
+    "main.js": "/todo-app/static/js/main.af4eba72.js",
+    "index.html": "/todo-app/index.html",
+    "main.a41ad741.css.map": "/todo-app/static/css/main.a41ad741.css.map",
+    "main.af4eba72.js.map": "/todo-app/static/js/main.af4eba72.js.map"
   },
   "entrypoints": [
     "static/css/main.a41ad741.css",
