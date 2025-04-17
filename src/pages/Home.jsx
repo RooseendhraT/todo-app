@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { signInWithPopup } from "firebase/auth";
 import { auth, provider } from "../firebase";
 import axios from "axios";
+
+const backendBaseURL = "https://your-backend.up.railway.app"; // ✅ Change this to your actual Railway backend URL
 
 const Home = () => {
   const [task, setTask] = useState("");
@@ -17,22 +19,31 @@ const Home = () => {
     }
   };
 
+  const fetchTasks = useCallback(async () => {
+    if (user) {
+      try {
+        const response = await axios.get(`${backendBaseURL}/api/tasks/${user.email}`);
+        const sortedTasks = response.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        setTasks(sortedTasks);
+      } catch (error) {
+        console.error("Error fetching tasks:", error);
+      }
+    }
+  }, [user]);
+
   const addTask = async () => {
     if (task.trim()) {
       try {
-        // If the user is logged in, add the task to the database
         if (user) {
-          await axios.post("http://localhost:5000/api/tasks/add", {
+          await axios.post(`${backendBaseURL}/api/tasks/add`, {
             userId: user.email,
             task,
           });
-          // Fetch the updated tasks after adding the new task
           fetchTasks();
         } else {
-          // If the user is not logged in, add the task statically to the state
           setTasks([{ task, id: Date.now() }, ...tasks]);
         }
-        setTask(""); // Clear the input field after adding the task
+        setTask("");
       } catch (error) {
         console.error("Error adding task:", error);
       }
@@ -42,12 +53,9 @@ const Home = () => {
   const deleteTask = async (taskId) => {
     try {
       if (user) {
-        // Delete the task from the database if the user is logged in
-        await axios.delete(`http://localhost:5000/api/tasks/${user.email}/${taskId}`);
-        // Fetch the updated tasks after deletion
+        await axios.delete(`${backendBaseURL}/api/tasks/${user.email}/${taskId}`);
         fetchTasks();
       } else {
-        // If not logged in, filter the task locally
         setTasks(tasks.filter((task) => task.id !== taskId));
       }
     } catch (error) {
@@ -55,26 +63,13 @@ const Home = () => {
     }
   };
 
-  const fetchTasks = async () => {
-    if (user) {
-      try {
-        const response = await axios.get(`http://localhost:5000/api/tasks/${user.email}`);
-        const sortedTasks = response.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-        setTasks(sortedTasks); // Set sorted tasks in state
-      } catch (error) {
-        console.error("Error fetching tasks:", error);
-      }
-    }
-  };
-
   useEffect(() => {
     if (user) {
-      fetchTasks(); // Fetch tasks for the logged-in user
+      fetchTasks();
     } else {
-      // If no user is logged in, leave the tasks empty or handle it statically
       setTasks([]);
     }
-  }, [user]); // Runs whenever user changes (login/logout)
+  }, [user, fetchTasks]);
 
   return (
     <div style={{ padding: "20px", maxWidth: "500px", margin: "0 auto" }}>
@@ -126,7 +121,16 @@ const Home = () => {
 
       <ul style={{ marginTop: "20px", padding: 0, listStyle: "none" }}>
         {tasks.map((t) => (
-          <li key={t._id || t.id} style={{ padding: "5px 8px", display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid #ccc" }}>
+          <li
+            key={t._id || t.id}
+            style={{
+              padding: "5px 8px",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              borderBottom: "1px solid #ccc",
+            }}
+          >
             {t.task}
             <button
               onClick={() => deleteTask(t._id || t.id)}

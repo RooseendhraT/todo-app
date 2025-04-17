@@ -1,4 +1,3 @@
-// src/pages/Login.jsx
 import React, { useState } from "react";
 import { signInWithPopup } from "firebase/auth";
 import { auth, provider } from "../firebase";
@@ -10,8 +9,7 @@ const Login = () => {
 
   const handleLogin = async () => {
     try {
-      const result = await signInWithPopup(auth, provider);
-      // Optionally store user data in your backend (MongoDB)
+      await signInWithPopup(auth, provider);
       navigate("/home"); // Redirect to Home page after login
     } catch (error) {
       setError("Login failed. Please try again.");
