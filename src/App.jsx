@@ -6,11 +6,11 @@ import Login from "./pages/Login";
 
 const App = () => {
   return (
-    <Router basename="/todo-app"> {/* <-- important fix here */}
+    <Router> {/* Removed basename */}
       <Routes>
         <Route path="/home" element={<Home />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/" element={<Home />} /> {/* Default route to Home */}
+        <Route path="/" element={<Home />} />
       </Routes>
     </Router>
   );
