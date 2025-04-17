@@ -3,7 +3,7 @@ import { signInWithPopup } from "firebase/auth";
 import { auth, provider } from "../firebase";
 import axios from "axios";
 
-const backendBaseURL = "https://your-backend.up.railway.app"; // ✅ Change this to your actual Railway backend URL
+const backendBaseURL = "https://todo-app-production-1274.up.railway.app"; // ✅ Change this to your actual Railway backend URL
 
 const Home = () => {
   const [task, setTask] = useState("");
