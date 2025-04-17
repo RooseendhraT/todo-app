@@ -1,15 +1,24 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { signInWithPopup } from "firebase/auth";
+import { signInWithPopup, onAuthStateChanged, signOut } from "firebase/auth";
 import { auth, provider } from "../firebase";
 import axios from "axios";
 
-const backendBaseURL = "https://todo-app-production-1274.up.railway.app"; // ✅ Change this to your actual Railway backend URL
+const backendBaseURL = "https://todo-app-production-1274.up.railway.app";
 
 const Home = () => {
   const [task, setTask] = useState("");
   const [tasks, setTasks] = useState([]);
   const [user, setUser] = useState(null);
 
+  // Persist login state
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser || null);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  // Google login handler
   const handleLogin = async () => {
     try {
       const result = await signInWithPopup(auth, provider);
@@ -19,6 +28,12 @@ const Home = () => {
     }
   };
 
+  // Logout handler
+  const handleLogout = () => {
+    signOut(auth);
+  };
+
+  // Fetch tasks
   const fetchTasks = useCallback(async () => {
     if (user) {
       try {
@@ -31,6 +46,7 @@ const Home = () => {
     }
   }, [user]);
 
+  // Add task handler
   const addTask = async () => {
     if (task.trim()) {
       try {
@@ -50,6 +66,7 @@ const Home = () => {
     }
   };
 
+  // Delete task handler
   const deleteTask = async (taskId) => {
     try {
       if (user) {
@@ -63,6 +80,7 @@ const Home = () => {
     }
   };
 
+  // Load tasks when user changes
   useEffect(() => {
     if (user) {
       fetchTasks();
@@ -72,74 +90,139 @@ const Home = () => {
   }, [user, fetchTasks]);
 
   return (
-    <div style={{ padding: "20px", maxWidth: "500px", margin: "0 auto" }}>
-      <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "10px" }}>
-        {user ? (
-          <span style={{ marginRight: "10px", fontWeight: "bold" }}>
-            Hi, {user.displayName}
-          </span>
-        ) : (
-          <button
-            onClick={handleLogin}
-            style={{
-              padding: "10px 20px",
-              backgroundColor: "#007bff",
-              color: "white",
-              border: "none",
-              cursor: "pointer",
-              borderRadius: "5px",
-            }}
-          >
-            Login with Google
-          </button>
-        )}
+    <div
+      style={{
+        padding: "20px",
+        maxWidth: "900px",
+        margin: "0 auto",
+        backgroundColor: "#f0f2f5", // Light theme
+        color: "#1f2937", // Dark text for readability
+        fontFamily: "Segoe UI, sans-serif",
+      }}
+    >
+      {/* Header */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: "20px",
+        }}
+      >
+        <h1 style={{ margin: 0 }}>Task Manager</h1>
+        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          {/* Login / Logout */}
+          {user ? (
+            <span style={{ fontWeight: "bold" }}>{user.displayName}</span>
+          ) : null}
+          <div>
+            {user ? (
+              <button
+                onClick={handleLogout}
+                style={{
+                  padding: "6px 12px",
+                  backgroundColor: "#ef4444",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "6px",
+                  cursor: "pointer",
+                }}
+              >
+                Sign Out
+              </button>
+            ) : (
+              <button
+                onClick={handleLogin}
+                style={{
+                  padding: "8px 16px",
+                  backgroundColor: "#4f46e5",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "6px",
+                  cursor: "pointer",
+                }}
+              >
+                Login with Google
+              </button>
+            )}
+          </div>
+        </div>
       </div>
 
-      <h1>To-Do App</h1>
-      <div style={{ display: "flex", justifyContent: "center", marginBottom: "20px" }}>
+      {/* Add Task */}
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column", // Stack input and button vertically
+          marginBottom: "20px",
+          gap: "10px", // Space between input and button
+        }}
+      >
         <input
           type="text"
           value={task}
-          placeholder="Enter a task..."
+          placeholder="Add your next task..."
           onChange={(e) => setTask(e.target.value)}
-          style={{ width: "70%", padding: "10px", marginRight: "10px" }}
+          style={{
+            padding: "8px",
+            border: "1px solid #ccc",
+            borderRadius: "6px",
+            outlineColor: "#4f46e5",
+            height: "35px", // Reduced height for the text box
+          }}
         />
         <button
           onClick={addTask}
           style={{
-            padding: "10px 20px",
-            backgroundColor: "#007bff",
+            padding: "12px 20px",
+            backgroundColor: "#4f46e5",
             color: "white",
             border: "none",
+            borderRadius: "6px",
             cursor: "pointer",
-            borderRadius: "5px",
+            height: "35px", // Same height as the input
           }}
         >
-          Add Task
+          Add
         </button>
       </div>
 
-      <ul style={{ marginTop: "20px", padding: 0, listStyle: "none" }}>
+      {/* Task List */}
+      <ul style={{ listStyle: "none", padding: 0 }}>
         {tasks.map((t) => (
           <li
             key={t._id || t.id}
             style={{
-              padding: "5px 8px",
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
-              borderBottom: "1px solid #ccc",
+              padding: "14px",
+              marginBottom: "12px",
+              backgroundColor: "#ffffff", // White background for tasks
+              borderRadius: "8px",
+              boxShadow: "0 2px 8px rgba(0, 0, 0, 0.06)",
+              border: "1px solid #e5e7eb",
+              gap: "10px",
             }}
           >
-            {t.task}
+            <span
+              style={{
+                flex: 1,
+                wordBreak: "break-word",
+                whiteSpace: "pre-wrap",
+                fontSize: "16px",
+              }}
+            >
+              {t.task}
+            </span>
             <button
               onClick={() => deleteTask(t._id || t.id)}
               style={{
-                marginLeft: "10px",
-                padding: "5px 10px",
-                backgroundColor: "red",
+                padding: "6px 12px",
+                backgroundColor: "#ef4444",
                 color: "white",
                 border: "none",
+                borderRadius: "6px",
                 cursor: "pointer",
               }}
             >
