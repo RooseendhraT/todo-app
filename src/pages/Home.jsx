@@ -109,7 +109,7 @@ const Home = () => {
           marginBottom: "20px",
         }}
       >
-        <h1 style={{ margin: 0 }}>Task Manager</h1>
+        <h1 style={{ margin: 0 }}>To-Do List</h1>
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
           {/* Login / Logout */}
           {user ? (
