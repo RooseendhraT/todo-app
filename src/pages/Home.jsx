@@ -3,7 +3,8 @@ import { signInWithPopup, onAuthStateChanged, signOut } from "firebase/auth";
 import { auth, provider } from "../firebase";
 import axios from "axios";
 
-const backendBaseURL = "https://todo-app-production-1274.up.railway.app";
+const backendBaseURL = "http://localhost:5000";
+
 
 const Home = () => {
   const [task, setTask] = useState("");
