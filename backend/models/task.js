@@ -10,8 +10,16 @@ const taskSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    dueDate: {
+      type: String, // format: "YYYY-MM-DD"
+      required: false,
+    },
+    dueTime: {
+      type: String, // format: "HH:mm"
+      required: false,
+    },
   },
-  { timestamps: true } // Automatically adds createdAt and updatedAt fields
+  { timestamps: true } // Adds createdAt and updatedAt fields automatically
 );
 
 const Task = mongoose.model("Task", taskSchema);

@@ -5,14 +5,29 @@ import axios from "axios";
 
 const backendBaseURL = "https://todo-app-production-5aaa.up.railway.app";
 
+// 🧩 Helper functions
+const formatDate = (dateStr) => {
+  if (!dateStr) return "";
+  const [year, month, day] = dateStr.split("-");
+  return `${day}/${month}/${year}`;
+};
 
+const formatTime = (timeStr) => {
+  if (!timeStr) return "";
+  const [h, m] = timeStr.split(":");
+  const hour = parseInt(h, 10);
+  const suffix = hour >= 12 ? "PM" : "AM";
+  const hour12 = ((hour + 11) % 12 + 1);
+  return `${hour12}:${m} ${suffix}`;
+};
 
 const Home = () => {
   const [task, setTask] = useState("");
+  const [dueDate, setDueDate] = useState("");
+  const [dueTime, setDueTime] = useState("");
   const [tasks, setTasks] = useState([]);
   const [user, setUser] = useState(null);
 
-  // Persist login state
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser || null);
@@ -20,7 +35,6 @@ const Home = () => {
     return () => unsubscribe();
   }, []);
 
-  // Google login handler
   const handleLogin = async () => {
     try {
       const result = await signInWithPopup(auth, provider);
@@ -30,12 +44,10 @@ const Home = () => {
     }
   };
 
-  // Logout handler
   const handleLogout = () => {
     signOut(auth);
   };
 
-  // Fetch tasks
   const fetchTasks = useCallback(async () => {
     if (user) {
       try {
@@ -48,27 +60,32 @@ const Home = () => {
     }
   }, [user]);
 
-  // Add task handler
   const addTask = async () => {
     if (task.trim()) {
       try {
+        const taskData = {
+          userId: user?.email || "guest",
+          task,
+          dueDate,
+          dueTime,
+        };
+
         if (user) {
-          await axios.post(`${backendBaseURL}/api/tasks/add`, {
-            userId: user.email,
-            task,
-          });
+          await axios.post(`${backendBaseURL}/api/tasks/add`, taskData);
           fetchTasks();
         } else {
-          setTasks([{ task, id: Date.now() }, ...tasks]);
+          setTasks([{ ...taskData, id: Date.now() }, ...tasks]);
         }
+
         setTask("");
+        setDueDate("");
+        setDueTime("");
       } catch (error) {
         console.error("Error adding task:", error);
       }
     }
   };
 
-  // Delete task handler
   const deleteTask = async (taskId) => {
     try {
       if (user) {
@@ -82,7 +99,6 @@ const Home = () => {
     }
   };
 
-  // Load tasks when user changes
   useEffect(() => {
     if (user) {
       fetchTasks();
@@ -92,144 +108,88 @@ const Home = () => {
   }, [user, fetchTasks]);
 
   return (
-    <div
-      style={{
-        padding: "20px",
-        maxWidth: "900px",
-        margin: "0 auto",
-        backgroundColor: "#f0f2f5", // Light theme
-        color: "#1f2937", // Dark text for readability
-        fontFamily: "Segoe UI, sans-serif",
-      }}
-    >
+    <div style={{
+      padding: "20px",
+      maxWidth: "900px",
+      margin: "0 auto",
+      backgroundColor: "#f0f2f5",
+      color: "#1f2937",
+      fontFamily: "Segoe UI, sans-serif",
+    }}>
       {/* Header */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: "20px",
-        }}
-      >
+      <div style={{
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        marginBottom: "20px",
+      }}>
         <h1 style={{ margin: 0 }}>To-Do List</h1>
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-          {/* Login / Logout */}
-          {user ? (
-            <span style={{ fontWeight: "bold" }}>{user.displayName}</span>
-          ) : null}
+          {user && <span style={{ fontWeight: "bold" }}>{user.displayName}</span>}
           <div>
             {user ? (
-              <button
-                onClick={handleLogout}
-                style={{
-                  padding: "6px 12px",
-                  backgroundColor: "#ef4444",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "6px",
-                  cursor: "pointer",
-                }}
-              >
-                Sign Out
-              </button>
+              <button onClick={handleLogout} style={buttonStyle("#ef4444")}>Sign Out</button>
             ) : (
-              <button
-                onClick={handleLogin}
-                style={{
-                  padding: "8px 16px",
-                  backgroundColor: "#4f46e5",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "6px",
-                  cursor: "pointer",
-                }}
-              >
-                Login with Google
-              </button>
+              <button onClick={handleLogin} style={buttonStyle("#4f46e5")}>Login with Google</button>
             )}
           </div>
         </div>
       </div>
 
       {/* Add Task */}
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column", // Stack input and button vertically
-          marginBottom: "20px",
-          gap: "10px", // Space between input and button
-        }}
-      >
+      <div style={{
+        display: "flex",
+        flexDirection: "column",
+        marginBottom: "20px",
+        gap: "10px",
+      }}>
         <input
           type="text"
           value={task}
           placeholder="Add your next task..."
           onChange={(e) => setTask(e.target.value)}
-          style={{
-            padding: "8px",
-            border: "1px solid #ccc",
-            borderRadius: "6px",
-            outlineColor: "#4f46e5",
-            height: "35px", // Reduced height for the text box
-          }}
+          style={inputStyle}
         />
-        <button
-          onClick={addTask}
-          style={{
-            padding: "12px 20px",
-            backgroundColor: "#4f46e5",
-            color: "white",
-            border: "none",
-            borderRadius: "6px",
-            cursor: "pointer",
-            height: "35px", // Same height as the input
-          }}
-        >
-          Add
-        </button>
+        <div style={{ display: "flex", gap: "10px" }}>
+          <input
+            type="date"
+            value={dueDate}
+            onChange={(e) => setDueDate(e.target.value)}
+            style={inputStyle}
+          />
+          <input
+            type="time"
+            value={dueTime}
+            onChange={(e) => setDueTime(e.target.value)}
+            style={inputStyle}
+          />
+        </div>
+        <button onClick={addTask} style={buttonStyle("#4f46e5")}>Add</button>
       </div>
 
       {/* Task List */}
       <ul style={{ listStyle: "none", padding: 0 }}>
         {tasks.map((t) => (
-          <li
-            key={t._id || t.id}
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              padding: "14px",
-              marginBottom: "12px",
-              backgroundColor: "#ffffff", // White background for tasks
-              borderRadius: "8px",
-              boxShadow: "0 2px 8px rgba(0, 0, 0, 0.06)",
-              border: "1px solid #e5e7eb",
-              gap: "10px",
-            }}
-          >
-            <span
-              style={{
-                flex: 1,
-                wordBreak: "break-word",
-                whiteSpace: "pre-wrap",
-                fontSize: "16px",
-              }}
-            >
-              {t.task}
-            </span>
-            <button
-              onClick={() => deleteTask(t._id || t.id)}
-              style={{
-                padding: "6px 12px",
-                backgroundColor: "#ef4444",
-                color: "white",
-                border: "none",
-                borderRadius: "6px",
-                cursor: "pointer",
-              }}
-            >
-              Delete
-            </button>
+          <li key={t._id || t.id} style={taskItemStyle}>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: "16px", fontWeight: "500" }}>{t.task}</div>
+              {(t.dueDate || t.dueTime) && (
+                <div style={{
+                  marginTop: "4px",
+                  padding: "4px 8px",
+                  backgroundColor: "#f9fafb",
+                  borderRadius: "6px",
+                  border: "1px solid #e5e7eb",
+                  fontSize: "13px",
+                  color: "#374151",
+                  display: "inline-block",
+                }}>
+                  {t.dueDate && <span>📅 Date: {formatDate(t.dueDate)}</span>}
+                  {t.dueTime && <span> | 🕒 Time: {formatTime(t.dueTime)}</span>}
+                </div>
+              )}
+            </div>
+            <button onClick={() => deleteTask(t._id || t.id)} style={buttonStyle("#ef4444")}>Delete</button>
           </li>
         ))}
       </ul>
@@ -238,3 +198,36 @@ const Home = () => {
 };
 
 export default Home;
+
+// 🔧 Reusable styles
+const inputStyle = {
+  padding: "8px",
+  border: "1px solid #ccc",
+  borderRadius: "6px",
+  outlineColor: "#4f46e5",
+  height: "35px",
+  flex: 1,
+};
+
+const buttonStyle = (bgColor) => ({
+  padding: "12px 20px",
+  backgroundColor: bgColor,
+  color: "white",
+  border: "none",
+  borderRadius: "6px",
+  cursor: "pointer",
+  height: "35px",
+});
+
+const taskItemStyle = {
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+  padding: "14px",
+  marginBottom: "12px",
+  backgroundColor: "#ffffff",
+  borderRadius: "8px",
+  boxShadow: "0 2px 8px rgba(0, 0, 0, 0.06)",
+  border: "1px solid #e5e7eb",
+  gap: "10px",
+};
