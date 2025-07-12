@@ -4,7 +4,7 @@ import { getAuth, GoogleAuthProvider } from "firebase/auth";
 
 const firebaseConfig = {
     apiKey: "AIzaSyAJCpjT0LsSrdfSgBfhnj8j0k3SDcDiZpE",
-    authDomain: "todo-app-fx7q.vercel.app",
+    authDomain: "todo-d0ebd.firebaseapp.com",
     projectId: "todo-d0ebd",
     storageBucket: "todo-d0ebd.firebasestorage.app",
     messagingSenderId: "71007739346",
